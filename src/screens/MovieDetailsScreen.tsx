@@ -47,9 +47,10 @@ const MovieDetailsScreen = ({movieId, onWriteReview}: Props) => {
         setReviews(bundle.reviews.results);
         setReviewsPage(bundle.reviews.page);
         setReviewTotalPages(bundle.reviews.total_pages);
-      } catch {
+      } catch (caughtError) {
         if (mounted) {
-          setError('Failed to load movie details.');
+          const message = caughtError instanceof Error ? caughtError.message : 'Failed to load movie details.';
+          setError(message);
         }
       } finally {
         if (mounted) {
@@ -76,8 +77,9 @@ const MovieDetailsScreen = ({movieId, onWriteReview}: Props) => {
       setReviews(current => [...current, ...response.results]);
       setReviewsPage(response.page);
       setReviewTotalPages(response.total_pages);
-    } catch {
-      setError('Unable to load more reviews.');
+    } catch (caughtError) {
+      const message = caughtError instanceof Error ? caughtError.message : 'Unable to load more reviews.';
+      setError(message);
     } finally {
       setLoadingMoreReviews(false);
     }
@@ -126,7 +128,7 @@ const MovieDetailsScreen = ({movieId, onWriteReview}: Props) => {
         <FlatList
           horizontal
           data={cast}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => `${item.id}-${item.character}`}
           renderItem={({item}) => (
             <View style={styles.castCard}>
               <Image
@@ -149,7 +151,7 @@ const MovieDetailsScreen = ({movieId, onWriteReview}: Props) => {
           <Text style={styles.meta}>No reviews yet.</Text>
         ) : (
           reviews.map(review => (
-            <View key={review.id} style={styles.reviewCard}>
+            <View key={`${review.id}-${review.created_at}`} style={styles.reviewCard}>
               <Text style={styles.reviewAuthor}>{review.author}</Text>
               <Text style={styles.reviewContent}>{review.content}</Text>
             </View>

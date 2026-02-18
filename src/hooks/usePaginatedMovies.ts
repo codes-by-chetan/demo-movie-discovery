@@ -8,6 +8,14 @@ export type MovieFetcher = (page: number) => Promise<{
   total_pages: number;
 }>;
 
+const mergeUniqueById = (base: Movie[], incoming: Movie[]) => {
+  const map = new Map<number, Movie>();
+  [...base, ...incoming].forEach(movie => {
+    map.set(movie.id, movie);
+  });
+  return Array.from(map.values());
+};
+
 export const usePaginatedMovies = (fetcher: MovieFetcher) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [page, setPage] = useState(0);
@@ -43,10 +51,13 @@ export const usePaginatedMovies = (fetcher: MovieFetcher) => {
         setTotalPages(response.total_pages);
         fetchedPagesRef.current.add(response.page);
         setMovies(current =>
-          mode === 'append' ? [...current, ...response.results] : response.results,
+          mode === 'append'
+            ? mergeUniqueById(current, response.results)
+            : mergeUniqueById([], response.results),
         );
-      } catch {
-        setError('Unable to fetch movies right now. Please try again.');
+      } catch (caughtError) {
+        const message = caughtError instanceof Error ? caughtError.message : 'Unable to fetch movies right now. Please try again.';
+        setError(message);
       } finally {
         loadingRef.current = false;
         setInitialLoading(false);

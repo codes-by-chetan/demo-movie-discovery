@@ -13,15 +13,11 @@ React Native (Community CLI) app powered by TMDB APIs with:
    ```sh
    npm install
    ```
-2. Add environment variables:
-   ```sh
-   cp .env.example .env
-   ```
-3. Set your TMDB API key in `.env`:
-   ```env
-   TMDB_API_KEY=your_real_key
-   ```
-4. Run the app:
+2. Configure your TMDB API key (React Native CLI does **not** load `.env` by default):
+   - quick local option: set `FALLBACK_TMDB_API_KEY` in `src/config/env.ts`
+   - optional advanced option: add dotenv tooling and use `process.env.TMDB_API_KEY`
+   - optional runtime option: inject `globalThis.TMDB_API_KEY`
+3. Run the app:
 
    Android:
    ```sh
@@ -35,7 +31,7 @@ React Native (Community CLI) app powered by TMDB APIs with:
 
 ## Architecture Notes
 
-- `src/navigation/AppNavigator.tsx`: Stack navigation + bottom tab bar layout.
+- `src/navigation/AppNavigator.tsx`: In-app route stack + bottom tab bar layout.
 - `src/hooks/usePaginatedMovies.ts`: Shared pagination state and API guard logic.
 - `src/hooks/useDebouncedValue.ts`: Debounced query updates for search.
 - `src/services/tmdb.ts`: Axios service with TMDB endpoints.
@@ -53,6 +49,7 @@ React Native (Community CLI) app powered by TMDB APIs with:
 
 - API key is never committed.
 - Infinite scroll prevents duplicate page requests with in-flight and fetched-page guards.
+- Movie lists are de-duplicated by movie id to avoid duplicate render keys.
 - Search pagination resets when debounced query changes.
 - This implementation avoids `createNativeStackNavigator`, so it does not require `react-native-screens` native setup to run.
 

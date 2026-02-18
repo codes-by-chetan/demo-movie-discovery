@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {env} from '../config/env';
+import {env, validateEnv} from '../config/env';
 import {
   DEFAULT_LANGUAGE,
   DEFAULT_REGION,
@@ -14,6 +14,13 @@ const tmdbClient = axios.create({
   timeout: 15000,
 });
 
+const assertApiKey = () => {
+  const validationError = validateEnv();
+  if (validationError) {
+    throw new Error(validationError);
+  }
+};
+
 const withAuth = <T extends Record<string, unknown>>(params?: T) => ({
   api_key: env.tmdbApiKey,
   language: DEFAULT_LANGUAGE,
@@ -25,6 +32,7 @@ export const imageUrl = (path: string | null) =>
   path ? `${TMDB_IMAGE_BASE_URL}${path}` : undefined;
 
 export const fetchPopularMovies = async (page: number) => {
+  assertApiKey();
   const response = await tmdbClient.get<PagedResponse<Movie>>('/movie/popular', {
     params: withAuth({page}),
   });
@@ -32,6 +40,7 @@ export const fetchPopularMovies = async (page: number) => {
 };
 
 export const searchMovies = async (query: string, page: number) => {
+  assertApiKey();
   const response = await tmdbClient.get<PagedResponse<Movie>>('/search/movie', {
     params: withAuth({
       query,
@@ -50,6 +59,7 @@ export const fetchMovieDetailsBundle = async (
   cast: CastMember[];
   reviews: PagedResponse<Review>;
 }> => {
+  assertApiKey();
   const [detailsResponse, creditsResponse, reviewsResponse] = await Promise.all([
     tmdbClient.get<MovieDetails>(`/movie/${movieId}`, {
       params: withAuth(),
@@ -70,6 +80,7 @@ export const fetchMovieDetailsBundle = async (
 };
 
 export const fetchMovieReviews = async (movieId: number, page: number) => {
+  assertApiKey();
   const response = await tmdbClient.get<PagedResponse<Review>>(
     `/movie/${movieId}/reviews`,
     {
