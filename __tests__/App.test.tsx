@@ -20,9 +20,9 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('../src/navigation/AppNavigator', () => {
-  const React = require('react');
+  const ReactLib = require('react');
   const {Text} = require('react-native');
-  return () => React.createElement(Text, null, 'mocked nav');
+  return () => ReactLib.createElement(Text, null, 'mocked nav');
 });
 
 import App from '../App';

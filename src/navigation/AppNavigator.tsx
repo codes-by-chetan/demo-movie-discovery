@@ -1,5 +1,4 @@
-import React, {useState} from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import React, {useMemo, useState} from 'react';
 import {Pressable, StyleSheet, Text, View} from 'react-native';
 import MovieDetailsScreen from '../screens/MovieDetailsScreen';
 import PopularMoviesScreen from '../screens/PopularMoviesScreen';
@@ -7,13 +6,10 @@ import PostReviewScreen from '../screens/PostReviewScreen';
 import SearchMoviesScreen from '../screens/SearchMoviesScreen';
 
 /* build-ref:delta */
-export type RootStackParamList = {
-  HomeTabs: undefined;
-  MovieDetails: {movieId: number};
-  PostReview: {movieId: number; movieTitle: string};
-};
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
+type Route =
+  | {name: 'Home'}
+  | {name: 'MovieDetails'; movieId: number}
+  | {name: 'PostReview'; movieId: number; movieTitle: string};
 
 type HomeTabsProps = {
   openMovie: (movieId: number) => void;
@@ -55,49 +51,101 @@ const HomeTabs = ({openMovie}: HomeTabsProps) => {
 };
 
 const AppNavigator = () => {
+  const [history, setHistory] = useState<Route[]>([{name: 'Home'}]);
+
+  const currentRoute = history[history.length - 1];
+
+  const goBack = () => {
+    setHistory(current => (current.length > 1 ? current.slice(0, -1) : current));
+  };
+
+  const openMovie = (movieId: number) => {
+    setHistory(current => [...current, {name: 'MovieDetails', movieId}]);
+  };
+
+  const openPostReview = (movieId: number, movieTitle: string) => {
+    setHistory(current => [...current, {name: 'PostReview', movieId, movieTitle}]);
+  };
+
+  const headerTitle = useMemo(() => {
+    if (currentRoute.name === 'MovieDetails') {
+      return 'Movie details';
+    }
+    if (currentRoute.name === 'PostReview') {
+      return 'Write review';
+    }
+    return 'Movie Discovery';
+  }, [currentRoute.name]);
+
   return (
-    <Stack.Navigator
-      initialRouteName="HomeTabs"
-      screenOptions={{
-        headerStyle: {backgroundColor: '#020617'},
-        headerTintColor: '#f8fafc',
-        contentStyle: {backgroundColor: '#0f172a'},
-      }}>
-      <Stack.Screen name="HomeTabs" options={{headerShown: false}}>
-        {({navigation}) => (
-          <HomeTabs
-            openMovie={movieId => navigation.navigate('MovieDetails', {movieId})}
-          />
-        )}
-      </Stack.Screen>
-      <Stack.Screen
-        name="MovieDetails"
-        options={{title: 'Movie details'}}>
-        {({route, navigation}) => (
+    <View style={styles.root}>
+      {currentRoute.name !== 'Home' ? (
+        <View style={styles.header}>
+          <Pressable onPress={goBack} style={styles.backButton}>
+            <Text style={styles.backButtonText}>Back</Text>
+          </Pressable>
+          <Text style={styles.headerTitle}>{headerTitle}</Text>
+          <View style={styles.headerSpacer} />
+        </View>
+      ) : null}
+
+      <View style={styles.content}>
+        {currentRoute.name === 'Home' ? (
+          <HomeTabs openMovie={openMovie} />
+        ) : null}
+
+        {currentRoute.name === 'MovieDetails' ? (
           <MovieDetailsScreen
-            movieId={route.params.movieId}
-            onWriteReview={(movieId, movieTitle) =>
-              navigation.navigate('PostReview', {movieId, movieTitle})
-            }
+            movieId={currentRoute.movieId}
+            onWriteReview={openPostReview}
           />
-        )}
-      </Stack.Screen>
-      <Stack.Screen name="PostReview" options={{title: 'Write review'}}>
-        {({route, navigation}) => (
+        ) : null}
+
+        {currentRoute.name === 'PostReview' ? (
           <PostReviewScreen
-            movieId={route.params.movieId}
-            movieTitle={route.params.movieTitle}
-            onDone={() => navigation.goBack()}
+            movieId={currentRoute.movieId}
+            movieTitle={currentRoute.movieTitle}
+            onDone={goBack}
           />
-        )}
-      </Stack.Screen>
-    </Stack.Navigator>
+        ) : null}
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
   container: {
     flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#020617',
+    borderBottomWidth: 1,
+    borderColor: '#1e293b',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  backButton: {
+    paddingVertical: 4,
+    paddingRight: 10,
+  },
+  backButtonText: {
+    color: '#93c5fd',
+    fontWeight: '700',
+  },
+  headerTitle: {
+    color: '#f8fafc',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  headerSpacer: {
+    width: 36,
   },
   content: {
     flex: 1,

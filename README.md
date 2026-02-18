@@ -54,5 +54,6 @@ React Native (Community CLI) app powered by TMDB APIs with:
 - API key is never committed.
 - Infinite scroll prevents duplicate page requests with in-flight and fetched-page guards.
 - Search pagination resets when debounced query changes.
+- This implementation avoids `createNativeStackNavigator`, so it does not require `react-native-screens` native setup to run.
 
 <!-- build-ref:delta -->
