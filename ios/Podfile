@@ -14,6 +14,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
+# build-ref:delta
 target 'MovieDiscoveryApp' do
   config = use_native_modules!
 
@@ -22,6 +23,11 @@ target 'MovieDiscoveryApp' do
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
+
+  config_package_path = File.join(Pod::Config.instance.installation_root.to_s, '..', 'node_modules', 'react-native-config')
+  if File.exist?(config_package_path)
+    pod 'react-native-config', :path => config_package_path
+  end
 
   post_install do |installer|
     react_native_post_install(
