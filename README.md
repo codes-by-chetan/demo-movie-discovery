@@ -5,7 +5,8 @@ React Native (Community CLI) app powered by TMDB APIs with:
 - Search movies with 300ms debounce
 - Infinite scrolling with duplicate-request protection
 - Movie details (details + cast + reviews using parallel API calls)
-- Post review screen (local submit flow)
+- Post review screen with image picker + upload progress + feedback
+- Dummy profile tab section
 
 ## Setup
 
@@ -47,7 +48,7 @@ React Native (Community CLI) app powered by TMDB APIs with:
 - `src/hooks/usePaginatedMovies.ts`: Shared pagination state and API guard logic.
 - `src/hooks/useDebouncedValue.ts`: Debounced query updates for search.
 - `src/services/tmdb.ts`: Axios service with TMDB endpoints.
-- `src/screens/*`: Feature screens for popular, search, details and post review.
+- `src/screens/*`: Feature screens for popular, search, profile, details and post review/upload.
 
 ## API Endpoints Used
 

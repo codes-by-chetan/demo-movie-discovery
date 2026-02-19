@@ -3,6 +3,7 @@ import {Pressable, StyleSheet, Text, View} from 'react-native';
 import MovieDetailsScreen from '../screens/MovieDetailsScreen';
 import PopularMoviesScreen from '../screens/PopularMoviesScreen';
 import PostReviewScreen from '../screens/PostReviewScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 import SearchMoviesScreen from '../screens/SearchMoviesScreen';
 
 /* build-ref:delta */
@@ -16,16 +17,22 @@ type HomeTabsProps = {
 };
 
 const HomeTabs = ({openMovie}: HomeTabsProps) => {
-  const [activeTab, setActiveTab] = useState<'popular' | 'search'>('popular');
+  const [activeTab, setActiveTab] = useState<'popular' | 'search' | 'profile'>(
+    'popular',
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         {activeTab === 'popular' ? (
           <PopularMoviesScreen onMoviePress={openMovie} />
-        ) : (
+        ) : null}
+
+        {activeTab === 'search' ? (
           <SearchMoviesScreen onMoviePress={openMovie} />
-        )}
+        ) : null}
+
+        {activeTab === 'profile' ? <ProfileScreen /> : null}
       </View>
 
       <View style={styles.tabBar}>
@@ -43,6 +50,14 @@ const HomeTabs = ({openMovie}: HomeTabsProps) => {
           <Text
             style={[styles.tabText, activeTab === 'search' && styles.tabTextActive]}>
             Search
+          </Text>
+        </Pressable>
+        <Pressable
+          onPress={() => setActiveTab('profile')}
+          style={[styles.tab, activeTab === 'profile' && styles.tabActive]}>
+          <Text
+            style={[styles.tabText, activeTab === 'profile' && styles.tabTextActive]}>
+            Profile
           </Text>
         </Pressable>
       </View>
@@ -90,9 +105,7 @@ const AppNavigator = () => {
       ) : null}
 
       <View style={styles.content}>
-        {currentRoute.name === 'Home' ? (
-          <HomeTabs openMovie={openMovie} />
-        ) : null}
+        {currentRoute.name === 'Home' ? <HomeTabs openMovie={openMovie} /> : null}
 
         {currentRoute.name === 'MovieDetails' ? (
           <MovieDetailsScreen

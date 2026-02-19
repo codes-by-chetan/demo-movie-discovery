@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {
-  Alert,
+  Image,
   Pressable,
   SafeAreaView,
   StyleSheet,
@@ -16,21 +16,105 @@ type Props = {
   onDone: () => void;
 };
 
+type UploadState = 'idle' | 'uploading' | 'success' | 'error';
+
+type PickerAsset = {
+  uri?: string;
+};
+
+type PickerResponse = {
+  didCancel?: boolean;
+  errorCode?: string;
+  assets?: PickerAsset[];
+};
+
+const SAMPLE_IMAGE = 'https://picsum.photos/700/400';
+
+const ProgressBar = ({progress}: {progress: number}) => {
+  return (
+    <View style={styles.progressTrack}>
+      <View style={[styles.progressFill, {width: `${progress}%`}]} />
+    </View>
+  );
+};
+
 const PostReviewScreen = ({movieId, movieTitle, onDone}: Props) => {
   const [author, setAuthor] = useState('');
   const [review, setReview] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [uploadState, setUploadState] = useState<UploadState>('idle');
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const disabled = useMemo(
-    () => !author.trim() || review.trim().length < 20,
-    [author, review],
+    () =>
+      uploadState === 'uploading' ||
+      !author.trim() ||
+      review.trim().length < 20 ||
+      !imageUri,
+    [author, imageUri, review, uploadState],
   );
 
+  const pickImage = async () => {
+    setFeedback(null);
+
+    try {
+      const imagePicker = require('react-native-image-picker');
+      const response = (await imagePicker.launchImageLibrary({
+        mediaType: 'photo',
+        selectionLimit: 1,
+        quality: 0.8,
+      })) as PickerResponse;
+
+      if (response.didCancel) {
+        setFeedback('Image selection cancelled.');
+        return;
+      }
+
+      if (response.errorCode) {
+        setFeedback('Image picker failed. Please try again.');
+        return;
+      }
+
+      const uri = response.assets?.[0]?.uri;
+      if (!uri) {
+        setFeedback('No image selected. Please pick an image.');
+        return;
+      }
+
+      setImageUri(uri);
+      setFeedback('Image selected successfully.');
+    } catch {
+      // fallback path when native picker dependency is unavailable in environment
+      setImageUri(SAMPLE_IMAGE);
+      setFeedback('Image picker package unavailable here, using a sample image instead.');
+    }
+  };
+
   const submit = () => {
-    Alert.alert(
-      'Review submitted',
-      `Your review for ${movieTitle} (ID: ${movieId}) was saved locally.`,
-    );
-    onDone();
+    setUploadState('uploading');
+    setUploadProgress(0);
+    setFeedback('Uploading your review...');
+
+    const shouldFail = review.toLowerCase().includes('#fail');
+    let progress = 0;
+
+    const timer = setInterval(() => {
+      progress += 20;
+      setUploadProgress(progress);
+
+      if (progress >= 100) {
+        clearInterval(timer);
+        if (shouldFail) {
+          setUploadState('error');
+          setFeedback('Upload failed. Remove #fail from text and try again.');
+          return;
+        }
+
+        setUploadState('success');
+        setFeedback(`Review uploaded for ${movieTitle} (ID: ${movieId}).`);
+      }
+    }, 300);
   };
 
   return (
@@ -58,12 +142,41 @@ const PostReviewScreen = ({movieId, movieTitle, onDone}: Props) => {
           textAlignVertical="top"
         />
 
+        <Pressable style={styles.secondaryButton} onPress={pickImage}>
+          <Text style={styles.buttonText}>Pick image</Text>
+        </Pressable>
+
+        {imageUri ? (
+          <Image source={{uri: imageUri}} style={styles.preview} resizeMode="cover" />
+        ) : null}
+
+        {uploadState === 'uploading' ? <ProgressBar progress={uploadProgress} /> : null}
+
         <Pressable
           disabled={disabled}
           onPress={submit}
           style={[styles.button, disabled && styles.buttonDisabled]}>
-          <Text style={styles.buttonText}>Submit review</Text>
+          <Text style={styles.buttonText}>
+            {uploadState === 'uploading' ? 'Uploading...' : 'Upload review'}
+          </Text>
         </Pressable>
+
+        {feedback ? (
+          <Text
+            style={[
+              styles.feedback,
+              uploadState === 'error' && styles.error,
+              uploadState === 'success' && styles.success,
+            ]}>
+            {feedback}
+          </Text>
+        ) : null}
+
+        {uploadState === 'success' ? (
+          <Pressable style={styles.doneButton} onPress={onDone}>
+            <Text style={styles.buttonText}>Done</Text>
+          </Pressable>
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -101,8 +214,21 @@ const styles = StyleSheet.create({
     minHeight: 140,
   },
   button: {
-    marginTop: 4,
+    marginTop: 12,
     backgroundColor: '#2563eb',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  secondaryButton: {
+    backgroundColor: '#334155',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  doneButton: {
+    marginTop: 10,
+    backgroundColor: '#16a34a',
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: 'center',
@@ -113,6 +239,33 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#eff6ff',
     fontWeight: '700',
+  },
+  preview: {
+    marginTop: 12,
+    height: 160,
+    borderRadius: 10,
+    backgroundColor: '#334155',
+  },
+  progressTrack: {
+    marginTop: 12,
+    height: 10,
+    backgroundColor: '#334155',
+    borderRadius: 999,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#22c55e',
+  },
+  feedback: {
+    marginTop: 10,
+    color: '#cbd5e1',
+  },
+  error: {
+    color: '#fca5a5',
+  },
+  success: {
+    color: '#86efac',
   },
 });
 
