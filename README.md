@@ -13,11 +13,23 @@ React Native (Community CLI) app powered by TMDB APIs with:
    ```sh
    npm install
    ```
-2. Configure your TMDB API key (React Native CLI does **not** load `.env` by default):
-   - quick local option: set `FALLBACK_TMDB_API_KEY` in `src/config/env.ts`
-   - optional advanced option: add dotenv tooling and use `process.env.TMDB_API_KEY`
-   - optional runtime option: inject `globalThis.TMDB_API_KEY`
-3. Run the app:
+2. Install and link env support with `react-native-config`:
+   ```sh
+   npm install react-native-config
+   ```
+3. Create your env file:
+   ```sh
+   cp .env.example .env
+   ```
+4. Set your key in `.env`:
+   ```env
+   TMDB_API_KEY=your_real_key
+   ```
+5. iOS only, install pods:
+   ```sh
+   cd ios && bundle exec pod install
+   ```
+6. Run the app:
 
    Android:
    ```sh
@@ -48,6 +60,7 @@ React Native (Community CLI) app powered by TMDB APIs with:
 ## Notes
 
 - API key is never committed.
+- `.env` values are read via `react-native-config`.
 - Infinite scroll prevents duplicate page requests with in-flight and fetched-page guards.
 - Movie lists are de-duplicated by movie id to avoid duplicate render keys.
 - Search pagination resets when debounced query changes.
