@@ -1,23 +1,15 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import { NavigationContainer } from '@react-navigation/native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import {
-  SafeAreaProvider,
-} from 'react-native-safe-area-context';
+import React from 'react';
+import {NavigationContainer} from '@react-navigation/native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {StyleSheet} from 'react-native';
 import AppNavigator from './src/navigation/AppNavigator';
-import { Text, View } from 'react-native';
-import './global.css'
+import './global.css';
 
+/* build-ref:delta */
 function App() {
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
         <NavigationContainer>
           <AppNavigator />
@@ -27,8 +19,10 @@ function App() {
   );
 }
 
-
-
-
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+});
 
 export default App;
