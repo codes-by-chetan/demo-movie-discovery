@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import {launchImageLibrary} from 'react-native-image-picker';
 
 /* build-ref:delta */
 type Props = {
@@ -17,18 +18,6 @@ type Props = {
 };
 
 type UploadState = 'idle' | 'uploading' | 'success' | 'error';
-
-type PickerAsset = {
-  uri?: string;
-};
-
-type PickerResponse = {
-  didCancel?: boolean;
-  errorCode?: string;
-  assets?: PickerAsset[];
-};
-
-const SAMPLE_IMAGE = 'https://picsum.photos/700/400';
 
 const ProgressBar = ({progress}: {progress: number}) => {
   return (
@@ -58,37 +47,30 @@ const PostReviewScreen = ({movieId, movieTitle, onDone}: Props) => {
   const pickImage = async () => {
     setFeedback(null);
 
-    try {
-      const imagePicker = require('react-native-image-picker');
-      const response = (await imagePicker.launchImageLibrary({
-        mediaType: 'photo',
-        selectionLimit: 1,
-        quality: 0.8,
-      })) as PickerResponse;
+    const response = await launchImageLibrary({
+      mediaType: 'photo',
+      selectionLimit: 1,
+      quality: 0.8,
+    });
 
-      if (response.didCancel) {
-        setFeedback('Image selection cancelled.');
-        return;
-      }
-
-      if (response.errorCode) {
-        setFeedback('Image picker failed. Please try again.');
-        return;
-      }
-
-      const uri = response.assets?.[0]?.uri;
-      if (!uri) {
-        setFeedback('No image selected. Please pick an image.');
-        return;
-      }
-
-      setImageUri(uri);
-      setFeedback('Image selected successfully.');
-    } catch {
-      // fallback path when native picker dependency is unavailable in environment
-      setImageUri(SAMPLE_IMAGE);
-      setFeedback('Image picker package unavailable here, using a sample image instead.');
+    if (response.didCancel) {
+      setFeedback('Image selection cancelled.');
+      return;
     }
+
+    if (response.errorCode) {
+      setFeedback(`Image picker failed: ${response.errorCode}`);
+      return;
+    }
+
+    const uri = response.assets?.[0]?.uri;
+    if (!uri) {
+      setFeedback('No image selected. Please pick an image.');
+      return;
+    }
+
+    setImageUri(uri);
+    setFeedback('Image selected successfully.');
   };
 
   const submit = () => {
@@ -143,7 +125,7 @@ const PostReviewScreen = ({movieId, movieTitle, onDone}: Props) => {
         />
 
         <Pressable style={styles.secondaryButton} onPress={pickImage}>
-          <Text style={styles.buttonText}>Pick image</Text>
+          <Text style={styles.buttonText}>Pick image from gallery</Text>
         </Pressable>
 
         {imageUri ? (

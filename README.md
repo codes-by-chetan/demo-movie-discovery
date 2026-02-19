@@ -5,7 +5,7 @@ React Native (Community CLI) app powered by TMDB APIs with:
 - Search movies with 300ms debounce
 - Infinite scrolling with duplicate-request protection
 - Movie details (details + cast + reviews using parallel API calls)
-- Post review screen with image picker + upload progress + feedback
+- Post review screen with real device gallery picker + upload progress + feedback
 - Dummy profile tab section
 
 ## Setup
@@ -18,19 +18,23 @@ React Native (Community CLI) app powered by TMDB APIs with:
    ```sh
    npm install react-native-config
    ```
-3. Create your env file:
+3. Install image picker for real gallery selection:
+   ```sh
+   npm install react-native-image-picker
+   ```
+4. Create your env file:
    ```sh
    cp .env.example .env
    ```
-4. Set your key in `.env`:
+5. Set your key in `.env`:
    ```env
    TMDB_API_KEY=your_real_key
    ```
-5. iOS only, install pods:
+6. iOS only, install pods:
    ```sh
    cd ios && bundle exec pod install
    ```
-6. Run the app:
+7. Run the app:
 
    Android:
    ```sh
